@@ -148,6 +148,8 @@ model Order {
   type        OrderType
   status      OrderStatus @default(PENDING)
   totalAmount Float       @default(0)
+  createdAt   DateTime    @default(now()) // <-- Bu satırı ekle
+  
   companyId   String?
   company     Company?    @relation(fields: [companyId], references: [id])
   items       OrderItem[]
