@@ -75,7 +75,7 @@ export default function SecurityLogsPage() {
               </tr>
             </thead>
             <tbody className="font-mono text-xs">
-              {logs.length === 0 ? (
+              logs.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="p-12 text-center text-slate-400 font-bold font-sans">
                     Henüz hiçbir şüpheli veya kritik sistem hareketi kaydedilmedi. Üstteki butondan simülasyon başlatabilirsiniz.
