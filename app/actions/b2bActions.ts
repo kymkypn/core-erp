@@ -1,10 +1,17 @@
 'use server'
 
+'use server'
+
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { TicketStatus } from '@prisma/client'
-// @prisma/client'tan import etme, tipi kendin tanımla:
+
+// @prisma/client'tan TicketStatus import etmeyi SİLİYORUZ.
+// Hata almamak için tipi buradan manuel tanımlıyoruz:
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+
+// 1. TÜM KAMPANYALARI GETİR
+export async function getCampaigns() {
+  // ... (kodun geri kalanı)
 
 // 1. TÜM KAMPANYALARI GETİR
 export async function getCampaigns() {
