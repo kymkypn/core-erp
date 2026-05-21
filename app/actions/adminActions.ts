@@ -8,8 +8,8 @@ import nodemailer from 'nodemailer'
 const prisma = new PrismaClient()
 
 // Eğer TicketStatus için tip hatası alıyorsan, onu import etme, tipini doğrudan buraya yaz:
+// @prisma/client'tan import etmiyoruz, tipi dosyada manuel tanımlıyoruz
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
-
 // ... (kodların devamı)
 
 // ==========================================
