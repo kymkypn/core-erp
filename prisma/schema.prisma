@@ -114,13 +114,15 @@ enum InvoiceScenario {
 
 // 2. MODELLER
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  name      String
-  phone     String
-  role      Role     @default(SALES)
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  username          String   @unique
+  password          String
+  name              String
+  phone             String
+  role              Role     @default(SALES)
+  twoFactorSecret   String?  // Bunu da eklediğinden emin ol
+  isTwoFactorActive Boolean  @default(false) // <-- BU SATIR EKSİK
+  createdAt         DateTime @default(now())
 }
 
 model Company {
@@ -149,10 +151,10 @@ model Order {
   status      OrderStatus @default(PENDING)
   totalAmount Float       @default(0)
   createdAt   DateTime    @default(now()) // <-- Bu satırı ekle
-
-  companyId String?
-  company   Company?    @relation(fields: [companyId], references: [id])
-  items     OrderItem[]
+  
+  companyId   String?
+  company     Company?    @relation(fields: [companyId], references: [id])
+  items       OrderItem[]
 }
 
 model OrderItem {
@@ -207,7 +209,7 @@ model FinancialTransaction {
   company     Company?        @relation(fields: [companyId], references: [id])
   type        TransactionType
   amount      Float
-  description String? // <-- BU SATIR EKSİK OLABİLİR, EKLE
+  description String?         // <-- BU SATIR EKSİK OLABİLİR, EKLE
   createdAt   DateTime        @default(now())
 }
 
