@@ -1,5 +1,8 @@
 'use server'
-
+// @prisma/client'tan import etmek yerine, prisma nesnesinden tipi çıkarabiliriz
+import { prisma } from '@/lib/prisma' 
+// Eğer TicketStatus hala bulunamıyorsa, onu kendi dosyanın içine bir type olarak tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
