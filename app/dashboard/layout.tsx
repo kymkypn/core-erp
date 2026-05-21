@@ -21,9 +21,10 @@ const MENU_ITEMS = [
   { path: '/dashboard/users', label: '🔐 Kullanıcı Yetkileri', roles: ['ADMIN'] },
 ]
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // 2. SUNUCU TARAFINDA OTURUM ÇEREZİNİ OKUYORUZ
-  const sessionCookie = cookies().get('erp_session')
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('erp_session')
   
   let userSession = { name: 'Misafir', role: 'YOK' }
   if (sessionCookie) {

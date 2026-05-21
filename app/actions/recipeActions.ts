@@ -15,16 +15,20 @@ export async function getRecipes() {
 }
 
 // 2. Yeni Reçete Oluştur
-export async function createRecipe(mainProductId: string, targetQuantity: number, ingredients: { ingredientId: string, quantity: number }[]) {
+export async function createRecipe(mainProductId: string, ingredients: { ingredientId: string, quantity: number }[]) {
   try {
     // Bu ürünün zaten bir reçetesi var mı kontrol et
     const existing = await prisma.recipe.findUnique({ where: { targetProductId: mainProductId } })
     if (existing) return { success: false, error: "Bu ürünün zaten bir reçetesi var!" }
 
+    const targetProduct = await prisma.product.findUnique({ where: { id: mainProductId } })
+    if (!targetProduct) return { success: false, error: "Hedef ürün bulunamadı." }
+
     await prisma.recipe.create({
       data: {
+        name: `${targetProduct.name} Reçetesi`,
         targetProductId: mainProductId,
-        targetQuantity,
+        targetQuantity: 1,
         ingredients: {
           create: ingredients.map(item => ({ productId: item.ingredientId, quantity: item.quantity }))
         }
@@ -60,7 +64,7 @@ export async function produceItem(recipeId: string, productionMultiplier: number
       }
 
       // 2. Ana (Mamul) ürünü stoğa ekle
-      const totalProduced = recipe.targetQuantity * productionMultiplier
+      const totalProduced = productionMultiplier
       await tx.product.update({
         where: { id: recipe.targetProductId },
         data: { stock: { increment: totalProduced } } // Stok artır

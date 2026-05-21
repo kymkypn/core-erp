@@ -1,4 +1,3 @@
-// --- VERİTABANI BAĞLANTISI ---
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,10 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// 1. SİSTEM SEÇENEKLERİ (ENUMLAR)
-// ==========================================
-
+// 1. ENUMLAR
 enum Role {
   ADMIN
   COORDINATOR
@@ -20,110 +16,141 @@ enum Role {
   SALES
   PURCHASING
   WAREHOUSE_MANAGER
-  WAREHOUSE_RECEIVING  // 📥 YENİ: Sadece Mal Kabul Yapabilen Saha Personeli
-  WAREHOUSE_STAFF      // 📤 MEVCUT: Sipariş Toplama / Mal Çıkış Personeli
+  WAREHOUSE_RECEIVING
+  WAREHOUSE_STAFF
 }
 
 enum CompanyType {
-  CUSTOMER // Sadece mal sattığımız (Müşteri)
-  SUPPLIER // Sadece mal aldığımız (Tedarikçi)
-  BOTH // Hem alıp hem sattığımız
+  CUSTOMER
+  SUPPLIER
+  BOTH
 }
 
 enum OrderType {
-  PURCHASE // Mal Alımı / Tedarik
-  SALE // Mal Satışı / Sevkiyat
+  PURCHASE
+  SALE
 }
 
 enum OrderStatus {
-  PENDING // Beklemede (Kamyon yolda / Depo onayı bekliyor)
-  COMPLETED // Tamamlandı (Stoka ve Cariye işlendi)
+  PENDING
+  COMPLETED
 }
 
 enum MovementType {
-  WASTE // Fire / Zayiat (Stoktan düşer)
-  RETURN // İade (Stoğa geri girer)
-  ADJUSTMENT // Sayım Düzeltmesi
+  WASTE
+  RETURN
+  ADJUSTMENT
 }
 
-// ==========================================
-// 2. KULLANICI VE FİRMA YÖNETİMİ
-// ==========================================
+enum ProductionStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
 
+enum AccountType {
+  CASH
+  BANK
+}
+
+enum TransactionType {
+  COLLECTION
+  PAYMENT
+  EXPENSE
+  INCOME
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum PaymentType {
+  SALARY
+  ADVANCE
+  BONUS
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  MEETING
+  PROPOSAL
+  WON
+  LOST
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum MarketplaceName {
+  TRENDYOL
+  HEPSIBURADA
+  AMAZON
+  SHOPIFY
+}
+
+enum InvoiceDirection {
+  INCOMING
+  OUTGOING
+}
+
+enum InvoiceScenario {
+  COMMERCIAL
+  BASIC
+  EARSIV
+}
+
+// 2. MODELLER
 model User {
-  id                String   @id @default(cuid())
-  username          String   @unique
-  password          String   // 🔒 YENİ EKLENDİ: Giriş Şifresi
-  name              String
-  phone             String
-  role              Role     @default(SALES)
-  twoFactorSecret   String?  // Google Authenticator Kodu
-  isTwoFactorActive Boolean  @default(false)
-  createdAt         DateTime @default(now())
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  phone     String
+  role      Role     @default(SALES)
+  createdAt DateTime @default(now())
 }
 
 model Company {
-  id                   String                 @id @default(cuid())
-  name                 String // Firma veya Şahıs Adı
-  type                 CompanyType
-  phone                String?
-  email                String?
-  address              String?
-  balance              Float                  @default(0) // Cari Bakiye (+ Alacak, - Borç)
-  orders               Order[] // Bu firmaya ait siparişler
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  FinancialTransaction FinancialTransaction[]
+  id           String                 @id @default(cuid())
+  name         String
+  type         CompanyType
+  balance      Float                  @default(0)
+  orders       Order[]
+  transactions FinancialTransaction[]
 }
-
-// ==========================================
-// 3. ÜRÜN VE STOK YÖNETİMİ
-// ==========================================
 
 model Product {
-  id        String   @id @default(cuid())
-  name      String
-  sku       String   @unique
-  stock     Int      @default(0) // Anlık Toplam Stok
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Diğer tablolarla bağlantılar
-  orderItems OrderItem[]
-  movements  StockMovement[]
-
-  // Üretim Modülü Bağlantıları
-  recipeAsMainProduct Recipe?      @relation("MainProduct")
-  usedInRecipes       RecipeItem[] @relation("IngredientProduct")
+  id                  String          @id @default(cuid())
+  name                String
+  sku                 String          @unique
+  stock               Int             @default(0)
+  orderItems          OrderItem[]
+  movements           StockMovement[]
+  recipeAsMainProduct Recipe?         @relation("MainProduct")
+  usedInRecipes       RecipeItem[]    @relation("IngredientProduct")
 }
-
-model StockMovement {
-  id          String       @id @default(cuid())
-  productId   String
-  product     Product      @relation(fields: [productId], references: [id])
-  type        MovementType
-  quantity    Int
-  description String?
-  createdAt   DateTime     @default(now())
-}
-
-// ==========================================
-// 4. SİPARİŞ VE SEVKİYAT YÖNETİMİ
-// ==========================================
 
 model Order {
   id          String      @id @default(cuid())
   type        OrderType
   status      OrderStatus @default(PENDING)
   totalAmount Float       @default(0)
-  createdAt   DateTime    @default(now())
-
-  // Hangi firmayla işlem yapılıyor?
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-
-  // Siparişin içindeki ürün kalemleri
-  items OrderItem[]
+  companyId   String?
+  company     Company?    @relation(fields: [companyId], references: [id])
+  items       OrderItem[]
 }
 
 model OrderItem {
@@ -133,371 +160,55 @@ model OrderItem {
   productId String
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
-  price     Float // İşlem anındaki birim fiyat
 }
 
-// ==========================================
-// 5. ÜRETİM VE REÇETELER (BOM - Bill of Materials)
-// ==========================================
-
-enum ProductionStatus {
-  PLANNED // Planlandı (Henüz üretime başlanmadı)
-  IN_PROGRESS // Üretim Bandında
-  COMPLETED // Tamamlandı (Hammaddeler düşüldü, yeni ürün stoğa girdi)
-  CANCELLED // İptal Edildi
+model StockMovement {
+  id        String       @id @default(cuid())
+  productId String
+  product   Product      @relation(fields: [productId], references: [id])
+  type      MovementType
+  quantity  Int
 }
 
 model Recipe {
-  id   String @id @default(cuid())
-  name String // Örn: "Premium Ahşap Masa Reçetesi"
-
-  targetProductId String  @unique
-  targetProduct   Product @relation("MainProduct", fields: [targetProductId], references: [id])
-
-  ingredients RecipeItem[] // Bu ürünü üretmek için gereken hammaddeler
-  productions ProductionOrder[] // Bu reçeteyle verilen üretim emirleri
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String       @id @default(uuid())
+  targetProductId String       @unique
+  product         Product      @relation("MainProduct", fields: [targetProductId], references: [id])
+  targetQuantity  Float
+  recipeItems     RecipeItem[]
 }
 
 model RecipeItem {
-  id       String @id @default(cuid())
-  recipeId String
-  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-
-  productId String // Kullanılacak hammaddenin ID'si
+  id        String  @id @default(cuid())
+  recipeId  String
+  recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  productId String
   product   Product @relation("IngredientProduct", fields: [productId], references: [id])
-
-  quantity Float // 1 adet nihai ürün üretmek için bu hammaddeden ne kadar lazım?
+  quantity  Float
 }
 
-model ProductionOrder {
-  id       String @id @default(cuid())
-  recipeId String
-  recipe   Recipe @relation(fields: [recipeId], references: [id])
-
-  quantity Float // Kaç adet üretilecek?
-  status   ProductionStatus @default(PLANNED)
-
-  startDate DateTime? // Üretime başlama tarihi
-  endDate   DateTime? // Tamamlanma tarihi
-
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 6. FİNANS VE ÖN MUHASEBE YÖNETİMİ
-// ==========================================
-
-enum AccountType {
-  CASH // Nakit Kasa (Örn: Merkez TL Kasası)
-  BANK // Banka Hesabı (Örn: Garanti Ticari)
-}
-
-enum TransactionType {
-  COLLECTION // Tahsilat (Müşteriden para geldi, cari bakiye düşer, kasa artar)
-  PAYMENT // Ödeme (Tedarikçiye para gitti, borcumuz düşer, kasa azalır)
-  EXPENSE // Gider (Fatura dışı harcama: Maaş, Elektrik, Kira, Yemek vb. - Sadece kasa azalır)
-  INCOME // Gelir (Sipariş dışı ek gelir - Sadece kasa artar)
-}
-
-// Nakit Kasalarımız ve Banka Hesaplarımız
 model CashAccount {
   id           String                 @id @default(cuid())
-  name         String // Örn: "Garanti Bankası TL", "Merkez Şube Kasası"
+  name         String
   type         AccountType
-  balance      Float                  @default(0) // Kasadaki anlık para
+  balance      Float                  @default(0)
   transactions FinancialTransaction[]
-  createdAt    DateTime               @default(now())
 }
 
-// Kasa ve Bankalardaki Tüm Para Giriş/Çıkış Hareketleri (Makbuz/Dekont)
 model FinancialTransaction {
-  id String @id @default(cuid())
-
-  // Hangi kasadan/bankadan işlem yapıldı?
+  id        String          @id @default(cuid())
   accountId String
-  account   CashAccount @relation(fields: [accountId], references: [id])
-
-  // Eğer bu işlem bir müşteri/tedarikçi ile yapıldıysa (Tahsilat/Ödeme)
+  account   CashAccount     @relation(fields: [accountId], references: [id])
   companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-
-  type        TransactionType
-  amount      Float // İşlem tutarı
-  description String? // Açıklama (Örn: "Nisan ayı kira ödemesi", "EFT ile tahsilat")
-
-  createdAt DateTime @default(now())
+  company   Company?        @relation(fields: [companyId], references: [id])
+  type      TransactionType
+  amount    Float
 }
-
-// ==========================================
-// 7. GİZLİ GÜVENLİK VE DENETİM LOGLARI
-// ==========================================
 
 model SecurityLog {
   id        String   @id @default(cuid())
-  action    String // Örn: "KAYIT_SILINDI"
-  module    String // Örn: "FINANCE"
-  details   String // Ne silindi? (Örn: "10.000 TL Tahsilat silindi")
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 8. İNSAN KAYNAKLARI (HR) VE BORDRO YÖNETİMİ
-// ==========================================
-
-enum EmployeeStatus {
-  ACTIVE // Çalışıyor
-  ON_LEAVE // İzinde / Raporlu
-  TERMINATED // İşten Ayrıldı
-}
-
-enum PaymentType {
-  SALARY // Normal Maaş
-  ADVANCE // Avans (Maaştan düşülecek)
-  BONUS // Prim / Ödül
-}
-
-// Şirket Personelleri (Sisteme giriş yapan 'User' olmak zorunda değiller. Şoför, depocu vs. hepsi buraya girer)
-model Employee {
-  id         String  @id @default(cuid())
-  tcNo       String? @unique
-  firstName  String
-  lastName   String
-  position   String // Örn: "Forklift Operatörü", "Muhasebe Uzmanı"
-  department String // Örn: "Lojistik", "Finans", "Üretim"
-  phone      String?
-  iban       String? // Maaş yatırılacak hesap
-
-  baseSalary Float // Net/Brüt Maaş Tutarı
-  hireDate   DateTime       @default(now()) // İşe giriş tarihi
-  status     EmployeeStatus @default(ACTIVE)
-
-  leaves   Leave[] // Personelin İzinleri
-  payrolls Payroll[] // Personelin Maaş/Avans Geçmişi
-
-  createdAt DateTime @default(now())
-}
-
-// Yıllık İzinler, Raporlar ve Mazeret İzinleri
-model Leave {
-  id         String   @id @default(cuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  type        String // Örn: "Yıllık İzin", "Sağlık Raporu", "Evlilik İzni"
-  startDate   DateTime
-  endDate     DateTime
-  status      String   @default("PENDING") // PENDING (Onay Bekliyor), APPROVED (Onaylandı), REJECTED (Reddedildi)
-  description String?
-
-  createdAt DateTime @default(now())
-}
-
-// Maaş, Avans ve Prim Ödemeleri
-model Payroll {
-  id         String   @id @default(cuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  type   PaymentType
-  amount Float // Ödenen veya kesilen tutar
-  month  Int // Hangi ayın işlemi? (1-12)
-  year   Int // Hangi yıl? (Örn: 2026)
-
-  isPaid      Boolean   @default(false) // Para kasadan çıktı mı?
-  paymentDate DateTime? // Ödemenin yapıldığı tarih
-  description String? // Örn: "Mayıs Ayı Avansı", "Nisan Maaşı"
-
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 9. CRM VE MÜŞTERİ İLİŞKİLERİ (SATIŞ HUNİSİ)
-// ==========================================
-
-enum LeadStatus {
-  NEW // Yeni Aday (Henüz aranmadı)
-  CONTACTED // İletişim Kuruldu
-  MEETING // Toplantı Yapıldı
-  PROPOSAL // Teklif Verildi
-  WON // KAZANILDI (Satışa Döndü)
-  LOST // Kaybedildi (İptal)
-}
-
-// Potansiyel Müşteri ve Satış Fırsatı
-model CrmLead {
-  id          String  @id @default(cuid())
-  companyName String // Firma / Kurum Adı
-  contactName String? // İlgili Kişi (Örn: Ahmet Bey)
-  phone       String?
-  email       String?
-
-  title  String // Fırsatın Adı (Örn: "Yıllık Lojistik Anlaşması")
-  value  Float      @default(0) // Fırsatın Beklenen Değeri (TL)
-  status LeadStatus @default(NEW)
-
-  notes String? // Genel notlar
-
-  meetings CrmMeeting[] // Bu firmayla yapılan görüşmelerin geçmişi
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// Görüşme ve Toplantı Geçmişi (Aktiviteler)
-model CrmMeeting {
-  id     String  @id @default(cuid())
-  leadId String
-  lead   CrmLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  date       DateTime // Görüşme Tarihi
-  type       String // Örn: "Yüz Yüze", "Telefon", "E-Posta"
-  notes      String // Ne konuşuldu?
-  nextAction String? // Bir sonraki adım (Örn: "Haftaya perşembe tekrar aranacak")
-
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 10. ARAÇ VE FİLO YÖNETİMİ
-// ==========================================
-
-enum VehicleStatus {
-  ACTIVE // Aktif / Görevde
-  MAINTENANCE // Sanayide / Bakımda
-  OUT_OF_SERVICE // Gayriaktif / Yatıyor
-}
-
-// Şirket Araçları
-model Vehicle {
-  id            String        @id @default(cuid())
-  plate         String        @unique // Plaka (Örn: 34 ABC 123)
-  brandModel    String // Marka / Model (Örn: "Ford Transit 2024")
-  type          String // Örn: "Tır", "Kamyonet", "Binek"
-  currentDriver String? // Şu anki Şoför Adı
-  status        VehicleStatus @default(ACTIVE)
-
-  expenses  VehicleExpense[] // Araca ait giderler (Yakıt, Kasko, Bakım)
-  createdAt DateTime         @default(now())
-}
-
-// Araç Giderleri (Kasa Entegrasyonlu)
-model VehicleExpense {
-  id        String  @id @default(cuid())
-  vehicleId String
-  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
-  type        String // Örn: "Yakıt", "Kasko/Sigorta", "Tamir/Bakım", "Muayene"
-  amount      Float // Masraf Tutarı
-  date        DateTime @default(now())
-  description String? // Örn: "Opet Yakıt Alımı", "Periyodik 10bin Bakımı"
-
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 12. B2B PORTAL YÖNETİMİ (KAMPANYA VE DESTEK TALEPLERİ)
-// ==========================================
-
-enum TicketStatus {
-  OPEN // Yeni Destek Talebi
-  IN_PROGRESS // İşlem Yapılıyor / İnceleniyor
-  RESOLVED // Çözüldü / Kapatıldı
-}
-
-// Bayilere Gösterilecek Özel Kampanyalar ve Duyurular
-model B2bCampaign {
-  id          String   @id @default(cuid())
-  title       String // Örn: "Haziran Ayına Özel %20 Toplu Alım İskontosu"
-  description String // Kampanya detayları ve şartları
-  endDate     DateTime // Kampanyanın son geçerlilik tarihi
-  isActive    Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-}
-
-// Bayilerin Portal Üzerinden Merkeze Açtığı Destek / Sipariş Talepleri
-model B2bTicket {
-  id        String       @id @default(cuid())
-  companyId String // Talebi açan Bayi (Company tablosundaki ID)
-  title     String // Konu Başlığı (Örn: "Sevkiyat Gecikmesi Hakkında")
-  message   String // Mesaj İçeriği
-  status    TicketStatus @default(OPEN)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ==========================================
-// 13. E-TİCARET VE PAZARYERİ ENTEGRASYONU (TRENDYOL, AMAZON VB.)
-// ==========================================
-
-enum MarketplaceName {
-  TRENDYOL
-  HEPSIBURADA
-  AMAZON
-  SHOPIFY
-}
-
-// Bağlanan Mağazaların API Entegrasyon Kartları
-model MarketplaceIntegration {
-  id        String          @id @default(cuid())
-  name      MarketplaceName
-  storeName String // Mağaza Adı (Örn: "Ayhan Lojistik Trendyol Mağazası")
-  apiKey    String // API Anahtarı (Maskeli gösterilecek)
-  apiSecret String? // API Secret
-  isActive  Boolean         @default(true)
-  lastSync  DateTime        @default(now())
-
-  externalOrders ExternalOrder[] // Bu mağazadan çekilen siparişler
-  createdAt      DateTime        @default(now())
-}
-
-// Pazaryerlerinden API ile Çekilen Siparişler
-model ExternalOrder {
-  id            String                 @id @default(cuid())
-  integrationId String
-  integration   MarketplaceIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-
-  marketplaceOrderId String // Pazaryerindeki Sipariş No (Örn: TY-82938129)
-  customerName       String // Alıcı Ad Soyad
-  totalAmount        Float
-  status             String // Örn: "Yeni Sipariş", "Paketlendi", "Kargoda"
-
-  createdAt DateTime @default(now())
-}
-
-// ==========================================
-// 14. E-FATURA & E-ARŞİV MERKEZİ (GİB ENTEGRASYONU)
-// ==========================================
-
-enum InvoiceDirection {
-  INCOMING // Gelen Fatura (Tedarikçiden bize kesilen)
-  OUTGOING // Giden Fatura (Bayiye/Müşteriye bizim kestiğimiz)
-}
-
-enum InvoiceScenario {
-  COMMERCIAL // Ticari Fatura (Onay/Red mekanizmalı)
-  BASIC // Temel Fatura
-  EARSIV // E-Arşiv Fatura (Son kullanıcıya)
-}
-
-// GİB Standartlarında E-Fatura Kayıtları
-model EInvoice {
-  id            String           @id @default(cuid())
-  invoiceNumber String           @unique // Fatura No (Örn: GIB2026000000123)
-  direction     InvoiceDirection
-  scenario      InvoiceScenario  @default(COMMERCIAL)
-
-  companyId   String // İlgili Cari Firma ID (Company tablosu)
-  totalAmount Float // Fatura Matrahı
-  taxAmount   Float // KDV Tutarı (%20 üzerinden hesaplanacak)
-  grandTotal  Float // Genel Toplam (Matrah + KDV)
-
-  status String @default("GIB_ONAYLANDI") // Örn: "GIB_ONAYLANDI", "REDPRESTO", "ONAY_BEKLIYOR"
-  uuid   String @unique // Resmi GİB Evrensel Tekil ID (UUID)
-
+  action    String
+  module    String
+  details   String
   createdAt DateTime @default(now())
 }

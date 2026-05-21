@@ -43,6 +43,7 @@ export async function createRecipe(formData: FormData) {
       data: {
         name,
         targetProductId,
+        targetQuantity: 1,
         ingredients: {
           create: ingredients.map((ing: any) => ({
             productId: ing.productId,

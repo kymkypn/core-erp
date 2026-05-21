@@ -4,10 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 export async function getEmployees() {
-  return await prisma.employee.findMany({
-    include: { payrolls: true, leaves: true },
-    orderBy: { createdAt: 'desc' }
-  })
+  try {
+    const employees = await prisma.employee.findMany({
+      include: { payrolls: true, leaves: true },
+      orderBy: { createdAt: 'desc' }
+    })
+    return { success: true, employees }
+  } catch (error) {
+    return { success: false, error: 'Personel verileri yüklenemedi.' }
+  }
 }
 
 export async function createEmployee(formData: FormData) {

@@ -50,7 +50,7 @@ export async function quickStockUpdate(productId: string, quantity: number, type
       await tx.stockMovement.create({
         data: {
           productId,
-          type: type === 'IN' ? 'ADJUSTMENT' : 'SALE',
+          type: type === 'IN' ? 'ADJUSTMENT' : 'WASTE',
           quantity: amount,
           description: `📱 El Terminali ile Hızlı ${type === 'IN' ? 'Kabul' : 'Çıkış'}`
         }
