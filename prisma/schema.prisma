@@ -149,10 +149,10 @@ model Order {
   status      OrderStatus @default(PENDING)
   totalAmount Float       @default(0)
   createdAt   DateTime    @default(now()) // <-- Bu satırı ekle
-  
-  companyId   String?
-  company     Company?    @relation(fields: [companyId], references: [id])
-  items       OrderItem[]
+
+  companyId String?
+  company   Company?    @relation(fields: [companyId], references: [id])
+  items     OrderItem[]
 }
 
 model OrderItem {
@@ -200,14 +200,15 @@ model CashAccount {
 }
 
 model FinancialTransaction {
-  id        String          @id @default(cuid())
-  accountId String
-  account   CashAccount     @relation(fields: [accountId], references: [id])
-  companyId String?
-  company   Company?        @relation(fields: [companyId], references: [id])
-  type      TransactionType
-  amount    Float
-  createdAt DateTime        @default(now()) // <-- BU SATIR EKSİK, EKLENMELİ
+  id          String          @id @default(cuid())
+  accountId   String
+  account     CashAccount     @relation(fields: [accountId], references: [id])
+  companyId   String?
+  company     Company?        @relation(fields: [companyId], references: [id])
+  type        TransactionType
+  amount      Float
+  description String? // <-- BU SATIR EKSİK OLABİLİR, EKLE
+  createdAt   DateTime        @default(now())
 }
 
 model SecurityLog {

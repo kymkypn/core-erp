@@ -33,9 +33,24 @@ async function sendSilentAlert(subject: string, message: string) {
 // 2. TÜM SİSTEM İŞLEMLERİNİ (LOGLARI) GETİR
 // ==========================================
 export async function getAuditLogs() {
-  const finances = await prisma.financialTransaction.findMany({ include: { account: true, company: true }, take: 40, orderBy: { createdAt: 'desc' }})
-  const orders = await prisma.order.findMany({ include: { company: true, items: { include: { product: true } } }, take: 40, orderBy: { createdAt: 'desc' }})
-  const movements = await prisma.stockMovement.findMany({ include: { product: true }, take: 40, orderBy: { createdAt: 'desc' }})
+  // Sadece include değil, tüm alanları kapsayacak şekilde genişletiyoruz
+const finances = await prisma.financialTransaction.findMany({ 
+  include: { account: true, company: true }, 
+  take: 40, 
+  orderBy: { createdAt: 'desc' } 
+})
+
+const orders = await prisma.order.findMany({ 
+  include: { company: true, items: { include: { product: true } } }, 
+  take: 40, 
+  orderBy: { createdAt: 'desc' } 
+})
+
+const movements = await prisma.stockMovement.findMany({ 
+  include: { product: true }, 
+  take: 40, 
+  orderBy: { createdAt: 'desc' } 
+})
 
   let logs: any[] = []
 
