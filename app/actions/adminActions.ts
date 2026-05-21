@@ -1,17 +1,11 @@
 'use server' // Bu dosya server-side olduğu için bunu mutlaka en üste ekle
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, TicketStatus } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
-// @prisma/client'tan import etme, tipi kendin tanımla:
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 // Dosya içinde prisma nesnesi tanımlı değilse, buradan oluştur:
 const prisma = new PrismaClient()
-
-// Eğer TicketStatus için tip hatası alıyorsan, onu import etme, tipini doğrudan buraya yaz:
-// @prisma/client'tan import etmiyoruz, tipi dosyada manuel tanımlıyoruz
-import { PrismaClient, TicketStatus } from '@prisma/client'// ... (kodların devamı)
 
 // ==========================================
 // 1. SESSİZ MAİL GÖNDERME BOTU (ARKA PLAN)
@@ -43,23 +37,23 @@ async function sendSilentAlert(subject: string, message: string) {
 // ==========================================
 export async function getAuditLogs() {
   // Sadece include değil, tüm alanları kapsayacak şekilde genişletiyoruz
-const finances = await prisma.financialTransaction.findMany({ 
-  include: { account: true, company: true }, 
-  take: 40, 
-  orderBy: { createdAt: 'desc' } 
-})
+  const finances = await prisma.financialTransaction.findMany({ 
+    include: { account: true, company: true }, 
+    take: 40, 
+    orderBy: { createdAt: 'desc' } 
+  })
 
-const orders = await prisma.order.findMany({ 
-  include: { company: true, items: { include: { product: true } } }, 
-  take: 40, 
-  orderBy: { createdAt: 'desc' } 
-})
+  const orders = await prisma.order.findMany({ 
+    include: { company: true, items: { include: { product: true } } }, 
+    take: 40, 
+    orderBy: { createdAt: 'desc' } 
+  })
 
-const movements = await prisma.stockMovement.findMany({ 
-  include: { product: true }, 
-  take: 40, 
-  orderBy: { createdAt: 'desc' } 
-})
+  const movements = await prisma.stockMovement.findMany({ 
+    include: { product: true }, 
+    take: 40, 
+    orderBy: { createdAt: 'desc' } 
+  })
 
   let logs: any[] = []
 
@@ -170,7 +164,7 @@ export async function deleteRecord(module: string, id: string) {
       })
     })
 
-    // 5. PATRONA SESSİZCE MAİL AT (await kullanmıyoruz, arka planda asenkron gitsin ki sistem beklemesin)
+    // 5. PATRONA SESSİZCE MAİL AT
     sendSilentAlert("Kritik İşlem İptali (Sistem Uyarı)", `Sistemde bir işlem geri alındı ve veritabanından silindi.\n\nDetaylar:\n- İşlem: ${deletedInfo}\n- Tarih: ${new Date().toLocaleString('tr-TR')}`)
 
     // Tüm sayfaların güncel verilerini tazele
