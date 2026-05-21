@@ -80,7 +80,8 @@ export default function SecurityLogsPage() {
                   <td colSpan={4} className="p-12 text-center text-slate-400 font-bold font-sans">
                     Henüz hiçbir şüpheli veya kritik sistem hareketi kaydedilmedi. Üstteki butondan simülasyon başlatabilirsiniz.
                   </td>
-                ) : (
+                </tr>
+              ) : (
                 logs.map(log => (
                   <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 text-slate-500 font-sans font-bold w-48">
