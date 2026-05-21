@@ -11,8 +11,7 @@ const prisma = new PrismaClient()
 
 // Eğer TicketStatus için tip hatası alıyorsan, onu import etme, tipini doğrudan buraya yaz:
 // @prisma/client'tan import etmiyoruz, tipi dosyada manuel tanımlıyoruz
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
-// ... (kodların devamı)
+import { PrismaClient, TicketStatus } from '@prisma/client'// ... (kodların devamı)
 
 // ==========================================
 // 1. SESSİZ MAİL GÖNDERME BOTU (ARKA PLAN)
