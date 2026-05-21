@@ -165,11 +165,13 @@ model OrderItem {
 }
 
 model StockMovement {
-  id        String       @id @default(cuid())
-  productId String
-  product   Product      @relation(fields: [productId], references: [id])
-  type      MovementType
-  quantity  Int
+  id          String       @id @default(cuid())
+  productId   String
+  product     Product      @relation(fields: [productId], references: [id])
+  type        MovementType
+  quantity    Int
+  description String?
+  createdAt   DateTime     @default(now()) // <-- Bu satırı ekle
 }
 
 model Recipe {
