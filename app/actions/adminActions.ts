@@ -1,11 +1,16 @@
-'use server'
-// @prisma/client'tan import etmek yerine, prisma nesnesinden tipi çıkarabiliriz
-import { prisma } from '@/lib/prisma' 
-// Eğer TicketStatus hala bulunamıyorsa, onu kendi dosyanın içine bir type olarak tanımla:
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
-import { prisma } from '@/lib/prisma'
+'use server' // Bu dosya server-side olduğu için bunu mutlaka en üste ekle
+
+import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
+
+// Dosya içinde prisma nesnesi tanımlı değilse, buradan oluştur:
+const prisma = new PrismaClient()
+
+// Eğer TicketStatus için tip hatası alıyorsan, onu import etme, tipini doğrudan buraya yaz:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+
+// ... (kodların devamı)
 
 // ==========================================
 // 1. SESSİZ MAİL GÖNDERME BOTU (ARKA PLAN)
