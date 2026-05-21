@@ -2,6 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
+// @prisma/client'tan import etme, tipi kendin tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 export async function getDashboardStats() {
   try {

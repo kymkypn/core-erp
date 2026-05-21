@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+// @prisma/client'tan import etme, tipi kendin tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 // 1. İLK KURULUM SİHİRBAZI (SİSTEMDE HİÇ KULLANICI YOKSA ÇALIŞIR)
 export async function setupFirstAdmin(formData: FormData) {

@@ -2,6 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+// @prisma/client'tan import etme, tipi kendin tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 // EXCEL'DEN GELEN JSON VERİSİNİ VERİTABANINA TOPLU YAZMA (UPSERT MANTIĞI)
 export async function processExcelData(productsData: any[]) {

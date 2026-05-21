@@ -3,6 +3,8 @@
 import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
+// @prisma/client'tan import etme, tipi kendin tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 // Dosya içinde prisma nesnesi tanımlı değilse, buradan oluştur:
 const prisma = new PrismaClient()

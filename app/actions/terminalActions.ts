@@ -2,6 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+// @prisma/client'tan import etme, tipi kendin tanımla:
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
 // 1. BARKOD OKUTULDUĞUNDA ÜRÜNÜ BUL
 export async function scanBarcode(barcode: string) {
