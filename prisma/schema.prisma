@@ -203,6 +203,7 @@ model FinancialTransaction {
   company   Company?        @relation(fields: [companyId], references: [id])
   type      TransactionType
   amount    Float
+  createdAt DateTime        @default(now()) // <-- BU SATIR EKSİK, EKLENMELİ
 }
 
 model SecurityLog {
