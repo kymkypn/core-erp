@@ -45,6 +45,7 @@ export async function processExcelData(productsData: any[]) {
           await tx.product.create({
             data: {
               name: name,
+              sku: sku || name,
               stock: stock,
             }
           })

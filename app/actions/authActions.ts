@@ -42,7 +42,8 @@ export async function setupFirstAdmin(formData: FormData) {
       isTwoFactorActive: adminUser.isTwoFactorActive
     })
 
-    cookies().set('erp_session', sessionData, {
+    const cookieStore = await cookies()
+    cookieStore.set('erp_session', sessionData, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24, // 24 Saatlik Oturum
@@ -80,7 +81,8 @@ export async function loginUser(formData: FormData) {
       isTwoFactorActive: user.isTwoFactorActive
     })
 
-    cookies().set('erp_session', sessionData, {
+    const cookieStore = await cookies()
+    cookieStore.set('erp_session', sessionData, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24, // 24 Saat
@@ -95,13 +97,15 @@ export async function loginUser(formData: FormData) {
 
 // 3. SİSTEMDEN GÜVENLİ ÇIKIŞ (LOGOUT)
 export async function logoutUser() {
-  cookies().delete('erp_session')
+  const cookieStore = await cookies()
+  cookieStore.delete('erp_session')
   redirect('/login')
 }
 
 // 4. GİRİŞ YAPMIŞ KULLANICININ SEANS BİLGİSİNİ GETİR (UI Tarafında Rol Kontrolü İçin)
 export async function GetUserSession() {
-  const sessionCookie = cookies().get('erp_session')
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('erp_session')
   if (!sessionCookie) return null
   
   try {

@@ -75,34 +75,34 @@ export default function SecurityLogsPage() {
               </tr>
             </thead>
             <tbody className="font-mono text-xs">
-              logs.length === 0 ? (
+              {logs.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="p-12 text-center text-slate-400 font-bold font-sans">
                     Henüz hiçbir şüpheli veya kritik sistem hareketi kaydedilmedi. Üstteki butondan simülasyon başlatabilirsiniz.
                   </td>
                 </tr>
-              ) : (
-                logs.map(log => (
-                  <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
-                    <td className="p-4 text-slate-500 font-sans font-bold w-48">
-                      {new Date(log.createdAt).toLocaleString('tr-TR')}
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-slate-900 text-slate-300 px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase">
-                        {log.module}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase border ${getActionStyle(log.action)}`}>
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-700 font-sans font-medium">
-                      {log.details}
-                    </td>
-                  </tr>
-                ))
-              )}
+             ) : (
+            logs.map((log) => (
+              <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                <td className="p-4 text-slate-500 font-sans font-bold w-48">
+                  {new Date(log.createdAt).toLocaleString('tr-TR')}
+                </td>
+                <td className="p-4">
+                  <span className="bg-slate-900 text-slate-300 px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase">
+                    {log.module}
+                  </span>
+                </td>
+                <td className="p-4">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase border ${getActionStyle(log.action)}`}>
+                    {log.action}
+                  </span>
+                </td>
+                <td className="p-4 text-slate-700 font-sans font-medium">
+                  {log.details}
+                </td>
+              </tr>
+            ))
+          )}
             </tbody>
           </table>
         </div>

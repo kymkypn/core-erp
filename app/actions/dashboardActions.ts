@@ -6,7 +6,8 @@ import { cookies } from 'next/headers'
 export async function getDashboardStats() {
   try {
     // 1. Giren kişinin rolünü çerezden okuyoruz
-    const sessionCookie = cookies().get('erp_session')
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get('erp_session')
     if (!sessionCookie) return { success: false, error: 'Oturum bulunamadı' }
     
     const sessionData = JSON.parse(sessionCookie.value)
@@ -23,7 +24,7 @@ export async function getDashboardStats() {
 
     // MUHASEBE & FİNANS DATASI
     if (canSeeFinance) {
-      const totalCash = await prisma.cashRegister.aggregate({ _sum: { balance: true } })
+      const totalCash = await prisma.cashAccount.aggregate({ _sum: { balance: true } })
       const outgoingInvoices = await prisma.eInvoice.count({ where: { direction: 'OUTGOING' } })
       const incomingInvoices = await prisma.eInvoice.count({ where: { direction: 'INCOMING' } })
       stats.finance = {
@@ -36,17 +37,20 @@ export async function getDashboardStats() {
     // İNSAN KAYNAKLARI DATASI
     if (canSeeHR) {
       const totalEmployees = await prisma.employee.count()
-      const totalAdvance = await prisma.payroll.aggregate({ _sum: { advanceGiven: true } })
+      const totalAdvance = await prisma.payroll.aggregate({
+        _sum: { amount: true },
+        where: { type: 'ADVANCE' }
+      })
       stats.hr = {
         totalEmployees,
-        totalAdvance: totalAdvance._sum.advanceGiven || 0
+        totalAdvance: totalAdvance._sum.amount || 0
       }
     }
 
     // SATIŞ & CRM DATASI
     if (canSeeSales) {
-      const wonDeals = await prisma.sale.count({ where: { status: 'WON' } })
-      const pendingDeals = await prisma.sale.count({ where: { status: 'NEGOTIATING' } })
+      const wonDeals = await prisma.crmLead.count({ where: { status: 'WON' } })
+      const pendingDeals = await prisma.crmLead.count({ where: { status: { in: ['CONTACTED', 'MEETING', 'PROPOSAL'] } } })
       const totalTickets = await prisma.b2bTicket.count({ where: { status: 'OPEN' } })
       stats.sales = { wonDeals, pendingDeals, totalTickets }
     }
@@ -55,7 +59,7 @@ export async function getDashboardStats() {
     if (canSeeWarehouse) {
       const plannedProduction = await prisma.productionOrder.count({ where: { status: 'PLANNED' } })
       const completedProduction = await prisma.productionOrder.count({ where: { status: 'COMPLETED' } })
-      const vehiclesOnRoute = await prisma.vehicle.count({ where: { status: 'ON_ROUTE' } })
+      const vehiclesOnRoute = await prisma.vehicle.count({ where: { status: 'ACTIVE' } })
       const ecommerceOrders = await prisma.externalOrder.count({ where: { status: 'Yeni Sipariş' } })
       
       stats.warehouse = { plannedProduction, completedProduction, vehiclesOnRoute, ecommerceOrders }

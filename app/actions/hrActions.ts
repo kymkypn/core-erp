@@ -1,69 +1,99 @@
-// ==========================================
-// 8. İNSAN KAYNAKLARI (HR) VE BORDRO YÖNETİMİ
-// ==========================================
+﻿'use server'
 
-enum EmployeeStatus {
-  ACTIVE      // Çalışıyor
-  ON_LEAVE    // İzinde / Raporlu
-  TERMINATED  // İşten Ayrıldı
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+
+export async function getEmployees() {
+  return await prisma.employee.findMany({
+    include: { payrolls: true, leaves: true },
+    orderBy: { createdAt: 'desc' }
+  })
 }
 
-enum PaymentType {
-  SALARY      // Normal Maaş
-  ADVANCE     // Avans (Maaştan düşülecek)
-  BONUS       // Prim / Ödül
+export async function createEmployee(formData: FormData) {
+  try {
+    const firstName = formData.get('firstName') as string
+    const lastName = formData.get('lastName') as string
+    const tcNo = (formData.get('tcNo') as string) || null
+    const position = formData.get('position') as string
+    const department = formData.get('department') as string
+    const phone = (formData.get('phone') as string) || null
+    const baseSalary = parseFloat(formData.get('baseSalary') as string) || 0
+
+    await prisma.employee.create({
+      data: { firstName, lastName, tcNo, position, department, phone, baseSalary }
+    })
+
+    revalidatePath('/dashboard/hr')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'Personel kaydı oluşturulamadı.' }
+  }
 }
 
-// Şirket Personelleri (Sisteme giriş yapan 'User' olmak zorunda değiller. Şoför, depocu vs. hepsi buraya girer)
-model Employee {
-  id            String         @id @default(cuid())
-  tcNo          String?        @unique
-  firstName     String
-  lastName      String
-  position      String         // Örn: "Forklift Operatörü", "Muhasebe Uzmanı"
-  department    String         // Örn: "Lojistik", "Finans", "Üretim"
-  phone         String?
-  iban          String?        // Maaş yatırılacak hesap
-  
-  baseSalary    Float          // Net/Brüt Maaş Tutarı
-  hireDate      DateTime       @default(now()) // İşe giriş tarihi
-  status        EmployeeStatus @default(ACTIVE)
+export async function createPayrollEntry(formData: FormData) {
+  try {
+    const employeeId = formData.get('employeeId') as string
+    const type = formData.get('type') as 'SALARY' | 'ADVANCE' | 'BONUS'
+    const amount = parseFloat(formData.get('amount') as string) || 0
+    const month = parseInt(formData.get('month') as string, 10) || new Date().getMonth() + 1
+    const year = parseInt(formData.get('year') as string, 10) || new Date().getFullYear()
+    const description = (formData.get('description') as string) || null
+    const isPaid = formData.get('isPaid') === 'true'
+    const accountId = (formData.get('accountId') as string) || null
 
-  leaves        Leave[]        // Personelin İzinleri
-  payrolls      Payroll[]      // Personelin Maaş/Avans Geçmişi
-  
-  createdAt     DateTime       @default(now())
+    const payrollData: any = {
+      employeeId,
+      type,
+      amount,
+      month,
+      year,
+      description,
+      isPaid,
+      paymentDate: isPaid ? new Date() : null
+    }
+
+    if (isPaid && accountId) {
+      await prisma.$transaction(async (tx) => {
+        await tx.payroll.create({ data: payrollData })
+        await tx.cashAccount.update({
+          where: { id: accountId },
+          data: { balance: { decrement: amount } }
+        })
+      })
+    } else {
+      await prisma.payroll.create({ data: payrollData })
+    }
+
+    revalidatePath('/dashboard/hr')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'Bordro kaydı oluşturulamadı.' }
+  }
 }
 
-// Yıllık İzinler, Raporlar ve Mazeret İzinleri
-model Leave {
-  id            String    @id @default(cuid())
-  employeeId    String
-  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  type          String    // Örn: "Yıllık İzin", "Sağlık Raporu", "Evlilik İzni"
-  startDate     DateTime
-  endDate       DateTime
-  status        String    @default("PENDING") // PENDING (Onay Bekliyor), APPROVED (Onaylandı), REJECTED (Reddedildi)
-  description   String?
-  
-  createdAt     DateTime  @default(now())
-}
+export async function createLeaveEntry(formData: FormData) {
+  try {
+    const employeeId = formData.get('employeeId') as string
+    const type = formData.get('type') as string
+    const startDate = new Date(formData.get('startDate') as string)
+    const endDate = new Date(formData.get('endDate') as string)
+    const description = (formData.get('description') as string) || null
 
-// Maaş, Avans ve Prim Ödemeleri
-model Payroll {
-  id            String      @id @default(cuid())
-  employeeId    String
-  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  type          PaymentType
-  amount        Float       // Ödenen veya kesilen tutar
-  month         Int         // Hangi ayın işlemi? (1-12)
-  year          Int         // Hangi yıl? (Örn: 2026)
-  
-  isPaid        Boolean     @default(false) // Para kasadan çıktı mı?
-  paymentDate   DateTime?   // Ödemenin yapıldığı tarih
-  description   String?     // Örn: "Mayıs Ayı Avansı", "Nisan Maaşı"
-  
-  createdAt     DateTime    @default(now())
+    await prisma.leave.create({
+      data: {
+        employeeId,
+        type,
+        startDate,
+        endDate,
+        status: 'PENDING',
+        description
+      }
+    })
+
+    revalidatePath('/dashboard/hr')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'İzin kaydı oluşturulamadı.' }
+  }
 }

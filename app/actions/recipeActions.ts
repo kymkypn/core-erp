@@ -7,8 +7,8 @@ import { revalidatePath } from 'next/cache'
 export async function getRecipes() {
   return await prisma.recipe.findMany({
     include: {
-      mainProduct: true,
-      ingredients: { include: { ingredient: true } }
+      targetProduct: true,
+      ingredients: { include: { product: true } }
     },
     orderBy: { createdAt: 'desc' }
   })
@@ -18,15 +18,15 @@ export async function getRecipes() {
 export async function createRecipe(mainProductId: string, targetQuantity: number, ingredients: { ingredientId: string, quantity: number }[]) {
   try {
     // Bu ürünün zaten bir reçetesi var mı kontrol et
-    const existing = await prisma.recipe.findUnique({ where: { mainProductId } })
+    const existing = await prisma.recipe.findUnique({ where: { targetProductId: mainProductId } })
     if (existing) return { success: false, error: "Bu ürünün zaten bir reçetesi var!" }
 
     await prisma.recipe.create({
       data: {
-        mainProductId,
+        targetProductId: mainProductId,
         targetQuantity,
         ingredients: {
-          create: ingredients
+          create: ingredients.map(item => ({ productId: item.ingredientId, quantity: item.quantity }))
         }
       }
     })
@@ -54,7 +54,7 @@ export async function produceItem(recipeId: string, productionMultiplier: number
       for (const item of recipe.ingredients) {
         const totalNeeded = item.quantity * productionMultiplier
         await tx.product.update({
-          where: { id: item.ingredientId },
+          where: { id: item.productId },
           data: { stock: { decrement: totalNeeded } } // Stok azalt
         })
       }
@@ -62,7 +62,7 @@ export async function produceItem(recipeId: string, productionMultiplier: number
       // 2. Ana (Mamul) ürünü stoğa ekle
       const totalProduced = recipe.targetQuantity * productionMultiplier
       await tx.product.update({
-        where: { id: recipe.mainProductId },
+        where: { id: recipe.targetProductId },
         data: { stock: { increment: totalProduced } } // Stok artır
       })
     })

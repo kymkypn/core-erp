@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { InvoiceDirection, InvoiceScenario } from '@prisma/client'
 
-// 1. TÜM FATURALARI GETÝR (Deðiþmedi, ayný kalýyor)
+// 1. TÃœM FATURALARI GETÄ°R (DeÄŸiÅŸmedi, aynÄ± kalÄ±yor)
 export async function getInvoices() {
   try {
     const invoices = await prisma.eInvoice.findMany({
@@ -23,11 +23,11 @@ export async function getInvoices() {
 
     return { success: true, invoices: invoicesWithCompany }
   } catch (error) {
-    return { success: false, error: "Fatura listesi yüklenemedi." }
+    return { success: false, error: "Fatura listesi yÃ¼klenemedi." }
   }
 }
 
-// 2. YENÝ E-FATURA OLUÞTUR (DÝNAMÝK KDV SEÇÝMLÝ)
+// 2. YENÄ° E-FATURA OLUÅžTUR (DÄ°NAMÄ°K KDV SEÃ‡Ä°MLÄ°)
 export async function createInvoice(formData: FormData) {
   try {
     const direction = formData.get('direction') as InvoiceDirection
@@ -35,22 +35,22 @@ export async function createInvoice(formData: FormData) {
     const companyId = formData.get('companyId') as string
     const totalAmount = parseFloat(formData.get('totalAmount') as string) // Matrah
     
-    // Kullanýcýnýn arayüzden seçtiði KDV oranýný alýyoruz (Örn: 20, 10, 1)
+    // KullanÄ±cÄ±nÄ±n arayÃ¼zden seÃ§tiÄŸi KDV oranÄ±nÄ± alÄ±yoruz (Ã–rn: 20, 10, 1)
     const taxRate = parseFloat(formData.get('taxRate') as string) || 20 
 
-    if (totalAmount <= 0) return { success: false, error: "Fatura tutarý 0'dan büyük olmalýdýr." }
-    if (!companyId) return { success: false, error: "Lütfen ilgili cari hesabý seçin." }
+    if (totalAmount <= 0) return { success: false, error: "Fatura tutarÄ± 0'dan bÃ¼yÃ¼k olmalÄ±dÄ±r." }
+    if (!companyId) return { success: false, error: "LÃ¼tfen ilgili cari hesabÄ± seÃ§in." }
 
     // Dinamik Vergisel Hesaplamalar
     const taxAmount = totalAmount * (taxRate / 100)
     const grandTotal = totalAmount + taxAmount
 
-    // Resmi Fatura No Simülasyonu
+    // Resmi Fatura No SimÃ¼lasyonu
     const currentYear = new Date().getFullYear()
     const randomSerial = Math.floor(Math.random() * 900000) + 100000
     const invoiceNumber = `GIB${currentYear}000${randomSerial}`
 
-    // UUID Üretimi
+    // UUID Ãœretimi
     const uuid = (() => {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -75,6 +75,6 @@ export async function createInvoice(formData: FormData) {
     revalidatePath('/dashboard/invoices')
     return { success: true }
   } catch (error) {
-    return { success: false, error: "Fatura resmi sisteme kaydedilirken bir hata oluþtu." }
+    return { success: false, error: "Fatura resmi sisteme kaydedilirken bir hata oluÅŸtu." }
   }
 }
