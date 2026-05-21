@@ -1,11 +1,18 @@
 'use server' // Bu dosya server-side olduğu için bunu mutlaka en üste ekle
 
-import { PrismaClient, TicketStatus } from '@prisma/client'
+'use server'
+
+import { PrismaClient } from '@prisma/client' // Sadece bunu tut
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
 
+// Prisma'nın TicketStatus'u getirmesini bekleme, burada tanımla
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'
+
 // Dosya içinde prisma nesnesi tanımlı değilse, buradan oluştur:
 const prisma = new PrismaClient()
+
+// ... (kodun geri kalanı aynı)
 
 // ==========================================
 // 1. SESSİZ MAİL GÖNDERME BOTU (ARKA PLAN)
